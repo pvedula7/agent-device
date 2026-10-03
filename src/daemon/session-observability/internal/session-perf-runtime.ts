@@ -74,7 +74,7 @@ export async function handlePerfRuntimeCommand(
     const plan = resolvePerfRuntimePlan(request);
     if (plan.kind === 'capture-stop') {
       return recordSuccessfulPerfResponse(
-        params,
+        bound,
         await stopPerfCapture(bound, session, plan.request),
       );
     }
@@ -90,7 +90,7 @@ export async function handlePerfRuntimeCommand(
       );
     }
     return recordSuccessfulPerfResponse(
-      params,
+      bound,
       await executeAdmittedPerfPlan(bound, session, admitted),
     );
   } catch (error) {
@@ -99,14 +99,13 @@ export async function handlePerfRuntimeCommand(
 }
 
 function recordSuccessfulPerfResponse(
-  params: PerfRuntimeHandlerParams,
+  params: PerfRuntimeHandlerParams & { ref: SessionRef },
   response: DaemonResponse,
 ): DaemonResponse {
   if (!response.ok) return response;
-  const session = params.sessionStore.get(params.sessionName);
   recordSessionAction(
     params.sessionStore,
-    session,
+    params.ref,
     params.req,
     'perf',
     isDataRecord(response.data) ? { ...response.data } : {},
